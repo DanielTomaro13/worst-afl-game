@@ -3,13 +3,13 @@ library(fitzRoy)
 library(zoo)
 # Data Extends back to 1897
 
-fetch_all_years_footywire <- function(start_year = 1897, end_year = 2024) {
+fetch_all_years_afltables <- function(start_year = 1897, end_year = 2024) {
   all_data <- list()
   
   for (year in start_year:end_year) {
     cat("Fetching data for year:", year, "\n")
       tryCatch({
-      year_data <- fetch_player_stats_footywire(year)
+      year_data <- fetch_player_stats_afltables(year)
       year_data$Season <- year
       all_data[[as.character(year)]] <- year_data
       Sys.sleep(2)
@@ -24,22 +24,19 @@ fetch_all_years_footywire <- function(start_year = 1897, end_year = 2024) {
     stop("No data was successfully fetched for any year.")
   }
 }
-footywire <- fetch_all_years_footywire()
+footywire <- fetch_all_years_afltables()
 
-
-# First collect all player stats as we discussed earlier
-footywire <- fetch_all_years_footywire(1897)
 
 # Lowest fantasy/SuperCoach points (modern era)
 worst_fantasy <- footywire %>%
-  filter(!is.na(SC) %>% 
+  filter(!is.na(SC)) %>% 
   arrange(SC) %>%
   head(20)  
   
 # Least possessions (disposals)
 worst_disposals <- footywire %>%
-  filter(!is.na(D) & D >= 0) %>%
-  arrange(D) %>%
+  filter(!is.na(Disposals)) %>%
+  arrange(Disposals) %>%
   head(20)
 
 # Worst efficiency
@@ -47,7 +44,7 @@ worst_disposals <- footywire %>%
 # Composite measure (low stats + high errors)
 worst_composite <- footywire %>%
   mutate(
-    badness_score = (D * -1) + (TO * 2) + (CL * 2)
+    badness_score = (Disposals * -1) + (Clangers * 2)
   ) %>%
   arrange(desc(badness_score)) %>%
   head(20)
@@ -70,12 +67,12 @@ player_seasons <- footywire %>%
 
 worst_stretches <- player_seasons %>%
   mutate(
-    disposals_5game = rollsum(D, 5, align = "right", fill = NA),
-    kicks_5game = rollsum(K, 5, align = "right", fill = NA),
-    handballs_5game = rollsum(H, 5, align = "right", fill = NA),
-    goals_5game = rollsum(G, 5, align = "right", fill = NA),
-    behinds_5game = rollsum(B, 5, align = "right", fill = NA),
-    tackles_5game = rollsum(T, 5, align = "right", fill = NA),
+    disposals_5game = rollsum(Disposals, 5, align = "right", fill = NA),
+    kicks_5game = rollsum(Kicks, 5, align = "right", fill = NA),
+    handballs_5game = rollsum(Handballs, 5, align = "right", fill = NA),
+    goals_5game = rollsum(Goals, 5, align = "right", fill = NA),
+    behinds_5game = rollsum(Behinds, 5, align = "right", fill = NA),
+    tackles_5game = rollsum(Tackles, 5, align = "right", fill = NA))
     
 # Fewest total disposals over 5 games
 worst_disposal_stretches <- worst_stretches %>%
